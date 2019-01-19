@@ -2,26 +2,19 @@
 //  ViewController.swift
 //  bonjourTest
 //
-//  Created by Shishir Jain on 29/05/18.
+//  Created by Pratyush on 29/05/18.
 //
 
 import UIKit
 
 class ViewController: UIViewController {
-
-    var netService:NetService
-    var type:String
-    var ipAddress:String
     
-    init(netService:NetService, type:String, ipAddress:String) {
-        self.netService = netService
-        self.type = type
-        self.ipAddress = ipAddress
-    }
+    @IBOutlet weak var discoverButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -29,6 +22,13 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-
+    @IBAction func discoverAction(_ sender: Any) {
+        let browser: BonjourService = BonjourService()
+        // This will find all HTTP servers - Check out BonjourService.Services for common services
+        browser.findService(BonjourService.Services.Hypertext_Transfer, domain: BonjourService.LocalDomain) { (services) in
+            // services will be an empty array if nothing was found
+            print(services)
+        }
+    }
 }
 
