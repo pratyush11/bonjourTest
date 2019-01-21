@@ -23,7 +23,7 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
     var isSearching: Bool = false
     var serviceTimeout: Timer = Timer()
     
-    /// Find all servies matching the given identifer in the given domain
+    /// Find all services matching the given identifer in the given domain
     ///
     /// Calls servicesFound: with any services found
     /// If no services were found, servicesFound: is called with an empty array
@@ -77,4 +77,19 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
         print("Resolved - \(sender.name)")
     }
     
+    var svc = NetService()
+    
+    func publishService(port: Int32) {
+        svc = NetService(domain: "local", type: "_http._tcp.", name: "BarsysDummy", port: port)
+        svc.delegate = self
+        svc.publish()
+    }
+    
+    func netServiceDidPublish(_ sender: NetService) {
+        print("\(svc.name) running on port \(svc.port)")
+    }
+    
+    func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
+        print(errorDict)
+    }
 }

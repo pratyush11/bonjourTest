@@ -24,11 +24,15 @@ class ViewController: UIViewController {
 
     @IBAction func discoverAction(_ sender: Any) {
         let browser: BonjourService = BonjourService()
-        // This will find all HTTP servers - Check out BonjourService.Services for common services
-        browser.findService(BonjourService.Services.Hypertext_Transfer, domain: BonjourService.LocalDomain) { (services) in
+//         This will find all HTTP servers - Check out BonjourService.Services for common services
+        let result = browser.findService(BonjourService.Services.Hypertext_Transfer, domain: "") { (services) in
             // services will be an empty array if nothing was found
             print(services)
         }
+        if !result {
+            print("Not searching.")
+        }
+//        browser.publishService(port: 8080)
     }
 }
 
