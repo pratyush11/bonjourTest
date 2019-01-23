@@ -26,12 +26,21 @@
                                     <action selector="discoverAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="myt-UC-TgT"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7QX-cC-6De">
+                                <rect key="frame" x="162" y="356" width="51" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Publish"/>
+                                <connections>
+                                    <action selector="publishAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="2RJ-aG-atZ"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
                         <outlet property="discoverButton" destination="rQU-Nn-YEW" id="rBZ-dV-Rbb"/>
+                        <outlet property="publishButton" destination="7QX-cC-6De" id="psy-ki-oX5"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

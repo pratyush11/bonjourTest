@@ -10,6 +10,7 @@ import UIKit
 class ViewController: UIViewController {
     
     @IBOutlet weak var discoverButton: UIButton!
+    @IBOutlet weak var publishButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,6 +34,11 @@ class ViewController: UIViewController {
             print("Not searching.")
         }
 //        browser.publishService(port: 8080)
+    }
+    
+    @IBAction func publishAction(_ sender: Any) {
+        let browser: BonjourService = BonjourService()
+        browser.publishService(port: 5196)
     }
 }
 
