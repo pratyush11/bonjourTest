@@ -29,6 +29,7 @@ class ViewController: UIViewController {
         let result = browser.findService(BonjourService.Services.Hypertext_Transfer, domain: "") { (services) in
             // services will be an empty array if nothing was found
             print(services)
+            browser.resolveService(service: services.first!)    //TODO:- nil check
         }
         if !result {
             print("Not searching.")

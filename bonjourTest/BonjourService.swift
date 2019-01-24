@@ -59,11 +59,12 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
             serviceFoundClosure(services)
             serviceBrowser.stop()
             isSearching = false
-            for svc in services {
-                if svc.name.lowercased().contains("barsys") {
-                    svc.resolve(withTimeout: 5)
-                }
-            }
+//            for svc in services {
+//                if svc.name.lowercased().contains("barsys") {
+//                    svc.delegate = self
+//                    svc.resolve(withTimeout: 5)
+//                }
+//            }
         }
     }
     
@@ -72,9 +73,38 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
         serviceBrowser.stop()
         isSearching = false
     }
+    
+    let info = ProcessInfo.processInfo
+    var begin: TimeInterval = TimeInterval()
+    
+    func resolveService(service: NetService) {
+        service.delegate = self
+        begin = info.systemUptime
+        service.resolve(withTimeout: 0.0)
+    }
+    
+    func netService(_ sender: NetService, didNotResolve errorDict: [String : NSNumber]) {
+        print("didNotResolve")
+    }
+    
+    func netServiceDidStop(_ sender: NetService) {
+        print("netServiceDidStop")
+    }
 
     func netServiceDidResolveAddress(_ sender: NetService) {
+        print("Elapsed time - \((info.systemUptime - begin))")
         print("Resolved - \(sender.name)")
+        var hostname = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+        guard let data = sender.addresses?.first else { return }
+        data.withUnsafeBytes { (pointer:UnsafePointer<sockaddr>) -> Void in
+            guard getnameinfo(pointer, socklen_t(data.count), &hostname, socklen_t(hostname.count), nil, 0, NI_NUMERICHOST) == 0 else {
+                return
+            }
+        }
+        let ipAddress = String(cString:hostname)
+        print(ipAddress)
+        sender.startMonitoring()
+//        sender.getInputStream(<#T##inputStream: UnsafeMutablePointer<InputStream?>?##UnsafeMutablePointer<InputStream?>?#>, outputStream: <#T##UnsafeMutablePointer<OutputStream?>?#>)
     }
     
     var svc = NetService()
