@@ -29,12 +29,13 @@ class ViewController: UIViewController {
         let result = browser.findService(BonjourService.Services.Hypertext_Transfer, domain: "") { (services) in
             // services will be an empty array if nothing was found
             print(services)
-            browser.resolveService(service: services.first!)    //TODO:- nil check
+            if let svc_first = services.first {
+                browser.resolveService(service: svc_first)
+            }
         }
         if !result {
             print("Not searching.")
         }
-//        browser.publishService(port: 8080)
     }
     
     @IBAction func publishAction(_ sender: Any) {

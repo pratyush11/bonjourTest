@@ -23,6 +23,8 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
     var isSearching: Bool = false
     var serviceTimeout: Timer = Timer()
     
+    //MARK:- Discovery methods
+    
     /// Find all services matching the given identifer in the given domain
     ///
     /// Calls servicesFound: with any services found
@@ -59,12 +61,6 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
             serviceFoundClosure(services)
             serviceBrowser.stop()
             isSearching = false
-//            for svc in services {
-//                if svc.name.lowercased().contains("barsys") {
-//                    svc.delegate = self
-//                    svc.resolve(withTimeout: 5)
-//                }
-//            }
         }
     }
     
@@ -103,13 +99,21 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
         }
         let ipAddress = String(cString:hostname)
         print(ipAddress)
-        sender.startMonitoring()
-//        sender.getInputStream(<#T##inputStream: UnsafeMutablePointer<InputStream?>?##UnsafeMutablePointer<InputStream?>?#>, outputStream: <#T##UnsafeMutablePointer<OutputStream?>?#>)
     }
+    
+    var iStream: InputStream = InputStream()
+    var oStream: OutputStream = OutputStream()
+    
+    func connectService(service: NetService) {
+        service.getInputStream(UnsafeMutablePointer<InputStream>.allocate(capacity: iStream), outputStream: oStream)
+    }
+    
+    //MARK:- Publish methods
     
     var svc = NetService()
     
     func publishService(port: Int32) {
+        precondition(port >= -1 && port <= 65535, "Port should be in the range 0-65535")
         svc = NetService(domain: "local", type: "_http._tcp.", name: "BarsysDummy", port: port)
         svc.delegate = self
         svc.publish()
