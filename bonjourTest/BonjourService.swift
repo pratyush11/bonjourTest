@@ -101,12 +101,67 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
         print(ipAddress)
     }
     
-    var iStream: InputStream = InputStream()
-    var oStream: OutputStream = OutputStream()
+    var iStream: InputStream?
+    var oStream: OutputStream?
+    var openedStreams = 0
+    var streamsConnected = false
+    var streamsConnectedCallback: (() -> Void)?
     
-    func connectService(service: NetService) {
-        service.getInputStream(UnsafeMutablePointer<InputStream>.allocate(capacity: iStream), outputStream: oStream)
+    func connectService(service: NetService, callback: (() -> Void)?) {
+        self.streamsConnectedCallback = callback
+        if !service.getInputStream(&iStream, outputStream: &oStream) {
+            print("Could not connect.")
+        }
+        self.openStreams()
     }
+    
+    func openStreams() {
+        guard self.openedStreams == 0 else {
+            return print("streams already opened... \(self.openedStreams)")
+        }
+        self.iStream?.delegate = self
+        self.iStream?.schedule(in: .current, forMode: .defaultRunLoopMode)
+        self.iStream?.open()
+        
+        self.oStream?.delegate = self
+        self.oStream?.schedule(in: .current, forMode: .defaultRunLoopMode)
+        self.oStream?.open()
+    }
+    
+    func closeStreams() {
+        self.iStream?.remove(from: .current, forMode: .defaultRunLoopMode)
+        self.iStream?.close()
+        self.iStream = nil
+        
+        self.oStream?.remove(from: .current, forMode: .defaultRunLoopMode)
+        self.oStream?.close()
+        self.oStream = nil
+        
+        self.streamsConnected = false
+        self.openedStreams = 0
+    }
+
+    func send(message: String) {
+        guard self.openedStreams == 2 else {
+            return print("No open streams: \(self.openedStreams)")
+        }
+        
+        guard self.oStream!.hasSpaceAvailable else {
+            return print("No space available.")
+        }
+        
+        let data = message.data(using: .utf8)!
+        
+        let bytesWritten = data.withUnsafeBytes { self.oStream?.write($0, maxLength: data.count) }
+        
+        guard bytesWritten == data.count else {
+            self.closeStreams()
+            print("Something is wrong.")
+            return
+        }
+        print("Data written: \(message)")
+    }
+
     
     //MARK:- Publish methods
     
@@ -125,5 +180,21 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
     
     func netService(_ sender: NetService, didNotPublish errorDict: [String : NSNumber]) {
         print(errorDict)
+    }
+}
+
+extension BonjourService: StreamDelegate {
+    func stream(_ aStream: Stream, handle eventCode: Stream.Event) {
+        if eventCode.contains(.openCompleted) {
+            self.openedStreams += 1
+        }
+        if eventCode.contains(.hasSpaceAvailable) {
+            if self.openedStreams == 2 && !self.streamsConnected {
+                print("streams connected.")
+                self.streamsConnected = true
+                self.streamsConnectedCallback?()
+            }
+        }
+
     }
 }
