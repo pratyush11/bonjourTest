@@ -40,6 +40,6 @@ class ViewController: UIViewController {
     
     @IBAction func publishAction(_ sender: Any) {
         let browser: BonjourService = BonjourService()
-        browser.publishService(port: 5196)
+        browser.publishService(port: 0)
     }
 }

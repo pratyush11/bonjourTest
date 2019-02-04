@@ -106,6 +106,7 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
     var openedStreams = 0
     var streamsConnected = false
     var streamsConnectedCallback: (() -> Void)?
+    var dataReceivedCallback: ((String) -> Void)?
     
     func connectService(service: NetService, callback: (() -> Void)?) {
         self.streamsConnectedCallback = callback
@@ -169,9 +170,15 @@ class BonjourService: NSObject, NetServiceBrowserDelegate, NetServiceDelegate {
     
     func publishService(port: Int32) {
         precondition(port >= -1 && port <= 65535, "Port should be in the range 0-65535")
-        svc = NetService(domain: "local", type: "_http._tcp.", name: "BarsysDummy", port: port)
+        svc = NetService(domain: "local.", type: Services.Hypertext_Transfer, name: "TestService", port: port)
         svc.delegate = self
-        svc.publish()
+        svc.includesPeerToPeer = true
+        svc.publish(options: .listenForConnections)
+        svc.schedule(in: .current, forMode: .defaultRunLoopMode)
+    }
+    
+    func netServiceWillPublish(_ sender: NetService) {
+        print("\(svc) will publish.")
     }
     
     func netServiceDidPublish(_ sender: NetService) {
@@ -195,6 +202,30 @@ extension BonjourService: StreamDelegate {
                 self.streamsConnectedCallback?()
             }
         }
-
+        if eventCode.contains(.hasBytesAvailable) {
+            guard let inputStream = self.iStream else {
+                return print("no input stream")
+            }
+            
+            let bufferSize     = 4096
+            var buffer         = Array<UInt8>(repeating: 0, count: bufferSize)
+            var message        = ""
+            
+            while inputStream.hasBytesAvailable {
+                let len = inputStream.read(&buffer, maxLength: bufferSize)
+                if len < 0 {
+                    print("error reading stream...")
+                    return self.closeStreams()
+                }
+                if len > 0 {
+                    message += String(bytes: buffer, encoding: .utf8)!
+                }
+                if len == 0 {
+                    print("no more bytes available...")
+                    break
+                }
+            }
+            self.dataReceivedCallback?(message)
+        }
     }
 }
